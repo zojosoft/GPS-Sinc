@@ -19,7 +19,14 @@
 FileInstall("Logo.jpg", "Logo.jpg")
 
 Global $CommPort, $Port, $Buffer, $String, $Data, $MM, $DD, $YY, $H, $M, $S
-Global $PCTime, $GPSTime
+Global $PCTime, $GPSTime, $Auto
+
+If FileExists(@ScriptDir & "/Config.ini") Then
+	$Auto = IniRead(@ScriptDir & "/Config.ini", "Config", "auto", "0")
+Else
+	$Auto = 0
+EndIf
+
 
 FindCOM("VID_1546&PID_01A7") ;~ u-Blox7 USB
 
@@ -50,6 +57,15 @@ GUICtrlSetFont(-1, 12, 800)
 
 GUISetState(@SW_SHOW)
 #EndRegion ### END Koda GUI section ###
+
+
+If $Auto <> 0 Then
+	AdlibRegister("Button1Click", $Auto*60000)
+	GUICtrlSetState($button1, $GUI_DISABLE)
+	GUICtrlSetData($button1, "AUTO")
+EndIf
+
+
 
 While 1
 	_GetData()
@@ -88,7 +104,11 @@ Func _ProcessString()
 		$GPSTime = "00/00/0000 00:00:00"
 		GUICtrlSetState($button1, $GUI_DISABLE)
 	Else
-		GUICtrlSetState($button1, $GUI_ENABLE)
+		If $Auto <> 0 Then
+			GUICtrlSetState($button1, $GUI_DISABLE)
+		Else
+			GUICtrlSetState($button1, $GUI_ENABLE)
+		EndIf
 		$MM = $Fd[3] & $Fd[4]
 		$DD = $Fd[1] & $Fd[2]
 		$YY = "20" & $Fd[5] & $Fd[6]
